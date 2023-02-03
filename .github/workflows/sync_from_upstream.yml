@@ -8,7 +8,7 @@ on:
     branches: [master]
 
 jobs:
-  sync:
+  Sync from upstream:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,6 +26,7 @@ jobs:
         git fetch upstream
     - name: Merge upstream changes
       run: |
+        git pull origin master
         git merge upstream/master --allow-unrelated-histories
     - name: GitHub Push
       uses: ad-m/github-push-action@v0.6.0
