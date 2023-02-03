@@ -8,7 +8,7 @@ on:
     branches: [master]
 
 jobs:
-  Sync from upstream:
+  Sync:
     runs-on: ubuntu-latest
 
     steps:
