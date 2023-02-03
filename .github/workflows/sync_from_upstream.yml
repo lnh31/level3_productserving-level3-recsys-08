@@ -27,7 +27,7 @@ jobs:
     - name: Merge upstream changes
       run: |
         git pull origin master
-        git merge upstream/master --allow-unrelated-histories
+        git merge upstream/master
     - name: GitHub Push
       uses: ad-m/github-push-action@v0.6.0
       with:
