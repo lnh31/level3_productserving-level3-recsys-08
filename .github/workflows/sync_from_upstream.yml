@@ -1,0 +1,35 @@
+name: Sync from upstream
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+
+  push:
+    branches: [master]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
+    - name: Git Setting
+      run: |
+        git config --global user.name 'lnh31'
+        git config --global user.email 'awsed2486@gmail.com'
+        
+    - name: Fetch upstream
+      run: |
+        git remote add upstream https://github.com/boostcampaitech4lv23recsys2/level3_productserving-level3-recsys-08.git
+        git fetch upstream
+    - name: Merge upstream changes
+      run: |
+        git checkout master
+        git merge upstream/master
+    - name: GitHub Push
+      uses: ad-m/github-push-action@v0.6.0
+      with:
+        github_token: ${{secrets.MY_TOKEN}}
+        branch: master
