@@ -16,6 +16,7 @@ jobs:
       with:
         status: ${{ job.status }}
         author_name: nahyun
+        only_mention_fail: 이나현_T4146
         fields: repo, message, commit, author, action, eventName, ref, workflow, job, took
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
