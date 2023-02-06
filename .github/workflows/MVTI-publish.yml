@@ -16,3 +16,15 @@ jobs:
         port: 22
         script: |
           sh deploy_ssh.sh
+          
+    - name: action-slack
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        author_name: nahyun
+        only_mention_fail: 이나현_T4146
+        fields: repo, message, commit, author, action, eventName, ref, workflow, job, took
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      if: always()
+
