@@ -28,7 +28,7 @@ jobs:
       run: |
         git checkout master
         git pull origin master
-        git merge upstream/master --allow-unrelated-histories
+        git merge -X theirs <branch>
     - name: GitHub Push
       uses: ad-m/github-push-action@v0.6.0
       with:
