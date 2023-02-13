@@ -21,7 +21,7 @@ def get_en_sim(engram, engram_sim):
     engram_sim.index = engram_sim.columns
     return engram_sim[[engram]].to_dict()[engram]
 
-def model_recommend_movies(prefer_movie_ids, top_k, model_path='../interaction_model/ALS_64'):
+def model_recommend_movies(prefer_movie_ids, top_k, model_path=cur_filepath('../interaction_model/LightGCN_64')):
     """주어진 movie ids로 부터 추천 영화 ids 반환
 
     Args:
@@ -33,6 +33,7 @@ def model_recommend_movies(prefer_movie_ids, top_k, model_path='../interaction_m
         list: 추천 영화 리스트
     """
     ## 사용자가 선호하는 movie id로 부터 모델 추천 받기
+    print(model_path)
     recommend_movie_ids=[]
     score = {}
     for mid in prefer_movie_ids:
@@ -95,7 +96,7 @@ def user_input_to_recommend(mbti_list, engram, prefer_movie_ids, top_k=10)->pd.D
     """
 
     ## mbti movie, 애니어그램 유사도 매트릭스 불러오기
-    mbti_movie = pd.read_pickle(cur_filepath('Pickle/230130_Popular_movie_character_2867_cwj.pickle'))
+    mbti_movie = pd.read_pickle(cur_filepath('Pickle/230213_character_movie_merge.pickle'))
     engram_sim = pd.read_pickle(cur_filepath('Pickle/enneagram_similarity_075_099.pickle'))
     model_path=cur_filepath('../interaction_model/LightGCN_64')
     recommend_movie_ids = model_recommend_movies(prefer_movie_ids, top_k, model_path=model_path)

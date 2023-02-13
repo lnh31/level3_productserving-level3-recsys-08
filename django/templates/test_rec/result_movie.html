@@ -5,28 +5,50 @@
     <div class="container_result">
       <div class="header_result">
         <div class="contents_header">
-          <h3 class="contents_header_title">{{data.movie}}</h3>
-          <h2 class="contents_header_subtitle">{{data.name}}</h2>
-          <div class="container_header_bar"></div>
+          <h3 class="contents_header_title">{{data.name}}</h3>
+          <h2 class="contents_header_subtitle">{{data.movie}}</h2>
+          {# <div class="container_header_bar"></div>#}
         </div>
       </div>
       <div class="background_wrap">
         <div class="contents_result contents_result_movie">
           <div class="character_box">
-            {% comment %} <div class="character_title">{{ character.name }}</div> {% endcomment %}
-
+            {# <div class="character_title">{{ character.name }}</div> #}
+            <div class="character_title">캐릭터 정보</div>
             <div class="character">
               <div class="poster_box">
-                <img src="{{character.img_path}}" alt="character" class="character_image"/>
+                <img src="{{ cur_character.img_src }}" alt="character" class="character_image"/>
               </div>
               <div class="character_body_info">
-                <div class="character_title">{{ character.name }}</div>
-                <div class="character_info">MBTI, Engram 정보</div>
-                <div class="character_info">#열여덟 #잘생김 #해시태그자리</div>
-                <div class="character_info">{{ character.char_info }}</div>
+                <div class="fullText">
+                  <div class="character_title">{{ cur_character.name }}</div>
+                  <div class="character_info">MBTI: {{ cur_character.MBTI }}</div>
+                  <div class="character_info_tag">{{ cur_character.hashtag }}</div>
+                  <div class="like_box" charId="{{cur_character.CharacterId}}" loginUser="{{login_user}}" like_cnt="{{like_cnt}}" liked="{{liked}}">
+                    <div class="like_button">
+                      <!-- 로그인했을때 -->
+                      {% if login_user %} 
+                        <!-- 이미 좋아요함 -->
+                        {% if liked %}
+                          <i id="heart" class="fa-solid fa-heart"></i>
+                        <!-- 좋아요 안함 -->
+                        {% else %}
+                          <i id="heart" class="fa-regular fa-heart"></i>
+                        {% endif %}
+                      <!-- 로그인안했을때 -->
+                      {% else %}
+                        <i id="heart" class="fa-solid fa-heart-circle-exclamation"></i> 
+                      {% endif %}
+                      <span class="like_cnt">{{ like_cnt }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div id="character_description" class="character_info">{{ cur_character.desc }}</div>
+                <div class="plus_box">
+                  <a href="#", id="plus" class="plus_button">더보기</a>
+                </div>
               </div>
             </div>
-
             <div class="character_title">캐릭터가 등장한 작품</div>
             <div class="movie">
               <div class="poster_box">
@@ -38,13 +60,18 @@
                 <div class="temp_box"></div>
               </div>
               <div class="movie_info_box">
-                <div class="character_title">{{ data.movie }}</div>
+                <div class="movie_title">{{ data.movie }}</div>
                 <div class="character_info">장르 : {{ data.genres }}</div>
-                <div class="character_info">설명 : {{ data.plot }}</div>
+                <div id="movie_description" class="movie_info">설명 : {{ data.plot }}</div>
+                <div class="plus_box">
+                  <a href="#" id="plus_movie" class="plus_button">더보기</a>
+                </div>
+
               </div>
               <div class="link_box" data-links="{{links}}">
                 <div class="link_box_title">감상 가능한 곳</div>
                 {% for link in links %} 
+
                 {% if link.platform == '왓챠' %}
                 <div class="link_box_link">
                   <a
@@ -64,6 +91,7 @@
                     </div>
                   </a>
                 </div>
+
                 {% elif link.platform == '넷플릭스' %}
                 <div class="link_box_link">
                   <a
@@ -83,6 +111,7 @@
                     </div>
                   </a>
                 </div>
+
                 {% elif link.platform == '디즈니+' %}
                 <div class="link_box_link">
                   <a
@@ -94,7 +123,7 @@
                     <img
                       class="link_logo"
                       src="{% static 'disneyplus_logo.jpg' %}"
-                      alt="watcha"
+                      alt="디즈니"
                     />
                     <div class="link_box_info">
                       <div class="link_box_name">{{link.platform}}</div>
@@ -103,20 +132,80 @@
                   </a>
                 </div>
 
+                {% elif link.platform == '티빙' %}
+                <div class="link_box_link">
+                  <a
+                    href="{{link.link}}"
+                    target="_blank"
+                    title="티빙"
+                    class="link_link"
+                  >
+                    <img
+                      class="link_logo"
+                      src="{% static 'tving_logo.png' %}"
+                      alt="티빙"
+                    />
+                    <div class="link_box_info">
+                      <div class="link_box_name">{{link.platform}}</div>
+                      <i class="fa-solid fa-angle-right"></i>
+                    </div>
+                  </a>
+                </div>
+
+                {% elif link.platform == '웨이브' %}
+                <div class="link_box_link">
+                  <a
+                    href="{{link.link}}"
+                    target="_blank"
+                    title="웨이브"
+                    class="link_link"
+                  >
+                    <img
+                      class="link_logo"
+                      src="{% static 'wavve_logo.png' %}"
+                      alt="웨이브"
+                    />
+                    <div class="link_box_info">
+                      <div class="link_box_name">{{link.platform}}</div>
+                      <i class="fa-solid fa-angle-right"></i>
+                    </div>
+                  </a>
+                </div>
+
+                {% elif link.platform == '애플 TV+' %}
+                <div class="link_box_link">
+                  <a
+                    href="{{link.link}}"
+                    target="_blank"
+                    title="애플 TV+"
+                    class="link_link"
+                  >
+                    <img
+                      class="link_logo"
+                      src="{% static 'apple_tv_logo.png' %}"
+                      alt="애플 TV+"
+                    />
+                    <div class="link_box_info">
+                      <div class="link_box_name">{{link.platform}}</div>
+                      <i class="fa-solid fa-angle-right"></i>
+                    </div>
+                  </a>
+                </div>
                 {% endif %} 
                 {% endfor %}
               </div>
             </div>
+            <div class="character_title">작품에 등장한 다른 캐릭터</div>
             <div class="other">
-              {% for character in data1 %}
-                  <div class="character_card" onclick="location.href='/test_rec/result_movie/{{character.CharacterId}}'">
+              {% for character in char_data %}
+                  <div class="character_card others_card" onclick="location.href='/test_rec/{{character.CharacterId}}'">
                     <img
                       src="{{ character.img_src }}"
-                      class="card_image"
+                      class="card_image others_image"
                       alt="Responsive image"
                     />
                     <div class="card_body">
-                      <div class="card_title">{{ character.Character }}</div>
+                      <div class="card_title">{{ character.name }}</div>
                       <div class="card_info" data-sim="{{character.Enneagram_sim}}">
                         <div class="card_info_items">
                           <div class="card_info_items_box">
@@ -131,18 +220,11 @@
                             <span class="card_info_item_tag">{{ character.hashtag }}</span>
                           </div>
                         </div>
-                        <div class="card_info_text_box">
-                          <h6 class="card_info_text">유사도</h6>
-                          <h6 class="card_info_text">{{character.Enneagram_sim}} %</h6>
-                        </div>
-                        <progress id="progress" value="{{character.Enneagram_sim}}" min="0" max="100"></progress>
                       </div>
-                      {% comment %} <button class="card_info_button" onclick="location.href='/test_rec/result_movie/{{character.CharacterId}}'" >+</button> {% endcomment %}
                     </div>
                   </div>
                 {% endfor %}
             </div>
-
           </div>
         </div>
       </div>
@@ -152,33 +234,93 @@
     </button>
 </div>
     <script>
-      {% comment %} let characterBody = document.querySelector(".temp_box");
-      let poster_box = document.querySelector(".poster_box");
-      let resultContents = document.querySelector(".result_contents");
-      let character = document.querySelector(".character");
-      let characterBodyInfo = document.querySelector(".character_body_info");
-      let linkBox = document.querySelector(".link_box");
-      window.onload = () => {
-        checkScreenSize();
-      };
-      window.onresize = () => {
-        checkScreenSize();
-      };
-      checkScreenSize = () => {
-        if (window.innerWidth <= 1158) {
-          characterBody.appendChild(characterBodyInfo);
-          characterBody.appendChild(linkBox);
-          characterBody.classList.add("character_body");
-          characterBody.style.display = "flex";
-          characterBody.style.flexDirection = "column";
-          characterBody.style.justifyContent = "space-around";
-        } else {
-          poster_box.appendChild(linkBox);
-          character.appendChild(characterBodyInfo);
+      // 좋아요
+      $('.like_box').click(function(){
+        let characterId = $('.like_box').attr('charId')
+        let loginUserId = $('.like_box').attr('loginUser')
+        let liked = $('.like_box').attr('liked')
+        let url = '/test_rec' + '/' + characterId + '/' + loginUserId
+        console.log('liked', liked)
+        
+        if(loginUserId == 'None'){
+          console.log('로그인 안함')
+          $('.like_cnt').text('로그인 해주세요:)')
+          $('.like_button').css({'width':'160px'})
+         
+          
+        }else{
+          console.log('로그인 한 유저:', loginUserId)
+
+          if(liked == '1'){
+            console.log('좋아요함')
+            like(url);
+          }else{
+            console.log('아직 좋아요안함')
+            like(url);
+          }
+          
+
         }
-      }; {% endcomment %}
+      })
+      function like(url){
+        $.ajax({
+          type: 'POST',
+          url: url,
+          success: function (response) {
+            console.log('좋아요 누름!')
+            console.log(response)
+          },
+          error: function (error) {
+            setTimeout(() => {
+              $('.wrap').innerHTML = `failed to load the data`
+            }, 5000)
+          }
+        }).done((response)=>{
+          let like_cnt = response.like_cnt
+          let liked = response.liked
+          let heart = ''
+          $('.like_cnt').text(like_cnt)
+        
+          if(liked == '1'){
+            heart = '<i id="heart" class="fa-solid fa-heart"></i>'
+          }else if (liked == '0'){
+            heart = '<i id="heart" class="fa-regular fa-heart"></i>'
+          }
+          $('#heart').remove();
+          $('.like_button').prepend(heart)
+        })
+      }
+
+      // 더보기 버튼
+      $('#plus').click(function(e){
+        e.preventDefault();
+        let txt = $('#plus').text();
+        if(txt == '더보기') {
+          $('.character_info').css({'display':'block'})
+          $('#plus').text('접기');
+        }
+        else {
+          $('.character_info').css({'display':'-webkit-box'})
+          $('#plus').text('더보기');
+        }
+      })
+      // movie 더보기 버튼
+      $('#plus_movie').click(function(e){
+        e.preventDefault();
+        let txt = $('#plus_movie').text();
+        if(txt == '더보기') {
+          $('.movie_info').css({'display':'block'})
+          $('#plus_movie').text('접기');
+        }
+        else {
+          $('.movie_info').css({'display':'-webkit-box'})
+          $('#plus_movie').text('더보기');
+        }
+      })
 
       // 링크 없으면 안보여주기
+      let linkBox = document.querySelector(".link_box");
+      
       let links = document
         .querySelector(".link_box")
         .getAttribute("data-links");
@@ -193,7 +335,7 @@
         links.includes("no_result")
       ) {
         linkBox.style.display = "none";
-        resultContents.style.display = "inherit";
+        // resultContents.style.display = "inherit";
       }
     </script>
     <script

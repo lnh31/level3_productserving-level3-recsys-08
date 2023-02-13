@@ -1,0 +1,115 @@
+{% extends 'test_rec/base.html' %}
+{% load static %} 
+{% load split_movieId_title %}
+{% block contents %}
+
+<div class="mbti_wrap" > 
+  <div class="spinner">
+    <div class="spinner_container">
+      <div class="cube1"></div>
+      <div class="cube2"></div>
+      Loading...
+    </div>
+  </div>
+  <div class="mbti_header">
+    <div class="mbti_header_box">
+      <h1 class="mbti_header_title">{{ mbti }}</h1>
+      <h3 class="mbti_header_subtitle">🔥 인기순위 🔥</h3>  
+    </div>
+    <h3 class="test_question_example">
+      ❗해당 MBTI의 캐릭터 인기순위입니다.
+    </h3>
+  </div>
+
+  <!-- simple 아코디언 -->
+  <div class="accordion_container">
+    <ul class="accordion_ul">
+      {% for cha in topten %}
+      <li class="accordion_li" style=" background: url('{{ cha.img_src }}');">
+        <div class="accordion_box"> 
+          <a class="accordion_a" href="/test_rec/{{cha.CharacterId}}">
+            <div class="ranking accordion_open">{{cha.index}}</div>
+            <h2 class="accordion_title">{{cha.name}}</h2>
+            <p class="accordion_subtitle">{{cha.hashtag}}</p>
+            <h2 class="accordion_title">{{cha.ko_title}}</h2>
+          </a> 
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+
+  <div class="contents mbti_contents">
+
+    <div class="cards_box_container">
+      <div class="cards_box infinite-container">
+       
+        {% for character in characters %}
+          <div id="data1" class="character_card infinite-item" onclick="location.href='/test_rec/{{character.CharacterId}}'">
+            <img
+              src="{{ character.img_src }}"
+              class="card_image"
+              alt="Responsive image"
+            />
+            <div class="card_body">
+              <div class="card_title">{{ character.name }}</div>
+              <div class="card_info" data-sim="{{character.Enneagram_sim}}">
+                <div class="card_info_items">
+                  <div class="card_info_items_box">
+                    <div class="card_info_item">
+                      <span class="card_info_item_title">{{character.ko_title}}</span>
+                    </div>
+                    <div class="card_info_item">
+                      <span class="card_info_item_title">MBTI | {{ character.MBTI }}</span>
+                    </div>
+                  </div>
+                  <div class="card_info_item">
+                    <span class="card_info_item_tag">{{ character.hashtag }}</span>
+                  </div>
+                </div>
+                
+              </div>
+              
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="pagination">
+        {% if page_obj.has_next %}
+          <a class="infinite-more-link" href="?page={{ page_obj.next_page_number }}">next</a>
+        {% endif %}
+      </div>
+    </div>
+    
+  </div>
+</div>
+<script>
+  
+  (function(){
+      // 이미지 뜨면 spinner 없애기.
+      $('.accordion_container').waitForImages(function() {
+          $('.spinner').fadeOut();
+    }, $.noop, true);
+    
+  })();
+  
+    
+  </script>
+  <script>
+
+    const infinite = new Waypoint.Infinite({
+      element: $('.infinite-container')[0],
+      offset: 'bottom-in-view',
+      handler: function(direction){
+        console.log('Scrolled!')
+      },
+      onBeforePageLoad: function(){},
+      onAfterPageLoad: function(){
+        const newTooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        const newTooltipList = [...newTooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+      }
+    })
+
+  </script>
+{% endblock %}

@@ -7,6 +7,12 @@ from recbole.data import create_dataset, data_preparation, Interaction
 from recbole.utils import init_logger, get_trainer, get_model, init_seed, set_color
 from recbole.utils.case_study import full_sort_topk
 import os
+import glob
+from environ import Env
+from pathlib import Path
+from sqlalchemy import create_engine
+import warnings
+warnings.filterwarnings('ignore')
 
 def make_config(config_name : str) -> None:
     yamldata="""
@@ -144,6 +150,115 @@ def filter_after_review_interaction(sub:pd.DataFrame) -> pd.DataFrame:
 
     sub = sub[sub.lastyear >= sub.m_year]
     return sub[['user','item']]
+
+def mvti_recommend(model_name : str, topk : int, model_path=None)->None:
+    """
+    train.py에서 학습했던 모델로 inference를 하는 함수입니다.
+    submission 폴더에 저장됩니다.
+
+    Args:
+        model_name (str): 돌렸던 모델의 이름입니다. 해당 모델의 이름이 들어가는 pth파일 중 최근 걸로 불러옵니다.
+        topk (int): submission에 몇 개의 아이템을 출력할지 정합니다.
+    """
+    
+    print("create_engine!")
+    # Build paths inside the project like this: BASE_DIR / 'subdir'.
+    BASE_DIR = Path(os.curdir).resolve().parent
+    env = Env()
+    env_path = BASE_DIR / "django/.env"
+    if env_path.exists():
+        with env_path.open("rt", encoding="utf8") as f:
+            env.read_env(f, overwrite=True)
+
+    dbname = env.get_value('GCPDB_NAME')
+    user = env.get_value('GCPDB_USER')
+    pw = env.get_value('GCPDB_PASSWORD')
+    host = env.get_value('GCPDB_HOST')
+
+    # engine 생성
+    engine = create_engine(f'mysql+mysqldb://{user}:{pw}@{host}:3306/{dbname}?charset=utf8')
+    print('inference start!')
+    if model_path is None:
+        # model_name이 들어가는 pth 파일 중 최근에 생성된 걸로 불러옴
+        os.makedirs('saved',exist_ok=True)
+        save_path = glob.glob('./saved/*')
+        latest_model_path = max(save_path, key=os.path.getctime)
+    model_path_absolute = Path(latest_model_path).absolute()
+    K = topk
+    print(f"{model_path_absolute = }")
+
+    # config, model, dataset 불러오기
+    checkpoint = torch.load(model_path_absolute)
+    config = checkpoint['config']
+
+    init_seed(config['seed'], config['reproducibility'])
+    config['dataset'] = 'train_data'
+    if model_name=="S3Rec":
+        config['eval_args']['split']={'RS':[99999,0,1]}
+    else:
+        config['eval_args']['split']['RS']=[999999,0,1]
+    print("create dataset start!")
+    dataset = create_dataset(config)
+    train_data, valid_data, test_data = data_preparation(config, dataset)
+    print("create dataset done!")
+
+    model = get_model(config['model'])(config, train_data.dataset).to(config['device'])
+    model.load_state_dict(checkpoint['state_dict'])
+    model.load_other_parameter(checkpoint.get('other_parameter'))
+
+    # device 설정
+    device = config.final_config_dict['device']
+
+    # user, item id -> token 변환 array
+    user_id = config['USER_ID_FIELD']
+    item_id = config['ITEM_ID_FIELD']
+    user_id2token = dataset.field2id_token[user_id]
+    item_id2token = dataset.field2id_token[item_id]
+
+    # 30만 번 이상 유저만, user tensor list 생성
+    user_list=[]
+    for idx,i in enumerate(user_id2token):
+        if i!='[PAD]':
+            if int(i)>=300_000:
+                user_list.append(idx)
+    user_tensor_list = torch.tensor(user_list)
+    print(f"{user_tensor_list = }, {len(user_tensor_list) = }")
+    # 예측
+    try:
+        pred_list = full_sort_topk(user_tensor_list, model, test_data, topk, device=device)[1]
+    except:
+        print(f"Real User가 없습니다. tail train_data.inter를 확인해주세요!")
+
+
+    # user별 item 추천 결과 하나로 합쳐주기
+    result = []
+    for user, pred in zip(user_list, pred_list):
+        for item in pred:
+            result.append((int(user_id2token[user]), int(item_id2token[item])))
+    sub = pd.DataFrame(result, columns=["user", "item"])
+
+    # DB에 쓸 결과 파일 생성
+    result = sub.groupby('user').item.apply(list).reset_index()
+
+    # 결과 파일 정제
+    result['model_name'] = model_name
+    result['model_path'] = model_path_absolute
+    result['create_time'] = str(pd.Timestamp.now())
+    result['id'] = 0
+
+    # 유저 번호 30만 내려주기
+    result.user -= 300_000
+
+    result.rename(columns={'user':'LoginUser_id','item':'recommended_movie_list'},inplace=True)
+    cols = ['id','LoginUser_id', 'model_name','model_path', 'recommended_movie_list', 'create_time']
+    result = result[cols]
+    print(f"{result.shape = }")
+    print(result[:3])
+    # DB에 쓰기
+    result.astype(str).to_sql(name='common_batchtrain', con=engine, index=False, if_exists='append')
+    print("DB wirte done!")
+    print('inference done!')
+    return
 
 def inference(model_name : str, topk : int, model_path=None)->None:
     """

@@ -17,7 +17,7 @@ from environ import Env
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-env = Env()
+env = Env(DEBUG=(bool, False))
 env_path = BASE_DIR / ".env"
 if env_path.exists():
     with env_path.open("rt", encoding="utf8") as f:
@@ -30,7 +30,7 @@ if env_path.exists():
 SECRET_KEY = 'django-insecure-tc7wa(_vy4#s9=f7!(zq(1degy+ejqy!m2eogyd+n4s@ec248t'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.get_value('DEBUG')
 
 ALLOWED_HOSTS = ["*"]
 
@@ -57,8 +57,10 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    ## 구글
+    ## 구글, 네이버, 카카오
     'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.naver',
+    'allauth.socialaccount.providers.kakao',
 ]
 
 SITE_ID = 1
@@ -73,6 +75,22 @@ SOCIALACCOUNT_PROVIDERS = {
         'APP': {
             'client_id': env.get_value('GOOGLE_CLIENT_ID'),
             'secret': env.get_value('GOOGLE_SECRET'),
+            'key': ''
+        }
+    },
+    'naver':{
+        'SCOPE': ['aq:name'],
+        'APP': {
+        'client_id': env.get_value('NAVER_CLIENT_ID'),
+            'secret': env.get_value('NAVER_SECRET'),
+            'key': ''
+        }
+    },
+    'kakao':{
+        'SCOPE': ['profile_nickname','account_email'],
+        'APP': {
+            'client_id': env.get_value('KAKAO_CLIENT_ID'),
+            'secret': '',
             'key': ''
         }
     }
@@ -97,6 +115,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CSRF_TRUSTED_ORIGINS = ['https://www.xn--py2bl5k6yfu6hbpd.com']
 
 ROOT_URLCONF = 'config.urls'
 
@@ -176,6 +196,9 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
+# 로그인 경로
+LOGIN_URL = 'common:login'
 
 # 로그인 후에 이동할 주소
 LOGIN_REDIRECT_URL = "/"

@@ -4,7 +4,7 @@ import pickle
 
 # 현재 파일 기준 경로잡기
 cur_filepath = lambda path: os.path.join(os.path.abspath(os.path.dirname(__file__)),path)
-popular_movie = pd.read_pickle(cur_filepath('Pickle/230130_Popular_movie_character_2867_cwj.pickle')) # 유명황 영화로 걸러주기 위해
+popular_movie = pd.read_pickle(cur_filepath('Pickle/230213_character_movie_merge.pickle')) # 유명황 영화로 걸러주기 위해
 data = pd.read_pickle(cur_filepath('Pickle/content_based_4035.pickle')) # side information data
 
 with open(cur_filepath('Pickle/content_based_plot_sim.pkl'), 'rb') as file:
@@ -78,7 +78,7 @@ def content_based_filtering(movieIds:list, topk:int):
     위 과정을 통해 만들어진 벡터를 코사인 유사도 기반으로 유사도를 측정한다
 
     Args:
-        checked (list): 유저가 선택한 영화 리스트입니다.
+        movieIds (list): 유저가 선택한 영화 리스트입니다.
         topk (int): 유사도 높은 아이템을 리턴할 개수
 
     Returns:
