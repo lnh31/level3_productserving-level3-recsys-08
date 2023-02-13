@@ -26,7 +26,6 @@ jobs:
         git fetch upstream
     - name: Merge upstream changes
       run: |
-        git branch master
         git checkout master
         git pull origin master
         git merge upstream/master --allow-unrelated-histories
