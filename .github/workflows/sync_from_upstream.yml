@@ -1,8 +1,8 @@
 name: Sync from upstream
 
 on:
-  schedule:
-    - cron: '*/15 * * * *'
+  #schedule:
+    #- cron: '*/15 * * * *' #현재 주석처리됨
 
   push:
     branches: [master]
